@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "connections_azurevm_name": {
+            "value": null
+        },
+        "connections_azurevm_1_name": {
+            "value": null
+        },
+        "virtualMachines_linuxVM1_name": {
+            "value": null
+        },
+        "bastionHosts_Linux_Bastion_name": {
+            "value": null
+        },
+        "virtualNetworks_vnet_westus_name": {
+            "value": null
+        },
+        "networkInterfaces_linuxvm1646_name": {
+            "value": null
+        },
+        "networkSecurityGroups_linuxVM1_nsg_name": {
+            "value": null
+        },
+        "schedules_shutdown_computevm_linuxvm1_name": {
+            "value": null
+        }
+    }
+}

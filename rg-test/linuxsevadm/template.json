@@ -1,0 +1,307 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "connections_azurevm_name": {
+            "defaultValue": "azurevm",
+            "type": "String"
+        },
+        "connections_azurevm_1_name": {
+            "defaultValue": "azurevm-1",
+            "type": "String"
+        },
+        "virtualMachines_linuxVM1_name": {
+            "defaultValue": "linuxVM1",
+            "type": "String"
+        },
+        "bastionHosts_Linux_Bastion_name": {
+            "defaultValue": "Linux_Bastion",
+            "type": "String"
+        },
+        "virtualNetworks_vnet_westus_name": {
+            "defaultValue": "vnet-westus",
+            "type": "String"
+        },
+        "networkInterfaces_linuxvm1646_name": {
+            "defaultValue": "linuxvm1646",
+            "type": "String"
+        },
+        "networkSecurityGroups_linuxVM1_nsg_name": {
+            "defaultValue": "linuxVM1-nsg",
+            "type": "String"
+        },
+        "schedules_shutdown_computevm_linuxvm1_name": {
+            "defaultValue": "shutdown-computevm-linuxvm1",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2024-07-01",
+            "name": "[parameters('networkSecurityGroups_linuxVM1_nsg_name')]",
+            "location": "westus",
+            "properties": {
+                "securityRules": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2024-07-01",
+            "name": "[parameters('virtualNetworks_vnet_westus_name')]",
+            "location": "westus",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "172.16.0.0/16"
+                    ]
+                },
+                "privateEndpointVNetPolicies": "Disabled",
+                "subnets": [
+                    {
+                        "name": "snet-westus-1",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vnet_westus_name'), 'snet-westus-1')]",
+                        "properties": {
+                            "addressPrefixes": [
+                                "172.16.0.0/24"
+                            ],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[parameters('connections_azurevm_name')]",
+            "location": "westus",
+            "kind": "V1",
+            "properties": {
+                "displayName": "live.com#sandeep.s.ch@hotmail.com",
+                "statuses": [
+                    {
+                        "status": "Connected"
+                    }
+                ],
+                "customParameterValues": {},
+                "nonSecretParameterValues": {
+                    "token:grantType": "code"
+                },
+                "createdTime": "2025-11-03T14:14:33.3367394Z",
+                "changedTime": "2026-01-14T08:23:42.1267095Z",
+                "api": {
+                    "name": "[parameters('connections_azurevm_name')]",
+                    "displayName": "Azure VM",
+                    "description": "Azure VM connector allows you to manage virtual machines.",
+                    "iconUri": "[concat('https://conn-afd-prod-endpoint-bmc9bqahasf3grgk.b01.azurefd.net/v1.0.1780/1.0.1780.4444/', parameters('connections_azurevm_name'), '/icon.png')]",
+                    "id": "[concat('/subscriptions/f05b75f0-4b3d-4759-bbfc-0b29feb82407/providers/Microsoft.Web/locations/westus/managedApis/', parameters('connections_azurevm_name'))]",
+                    "type": "Microsoft.Web/locations/managedApis"
+                },
+                "testLinks": []
+            }
+        },
+        {
+            "type": "Microsoft.Web/connections",
+            "apiVersion": "2016-06-01",
+            "name": "[parameters('connections_azurevm_1_name')]",
+            "location": "westus",
+            "kind": "V1",
+            "properties": {
+                "displayName": "new_conn_220c3",
+                "statuses": [
+                    {
+                        "status": "Ready"
+                    }
+                ],
+                "customParameterValues": {},
+                "createdTime": "2025-11-03T14:39:22.3018164Z",
+                "changedTime": "2025-11-03T14:39:22.3018164Z",
+                "api": {
+                    "name": "azurevm",
+                    "displayName": "Azure VM",
+                    "description": "Azure VM connector allows you to manage virtual machines.",
+                    "iconUri": "https://conn-afd-prod-endpoint-bmc9bqahasf3grgk.b01.azurefd.net/v1.0.1780/1.0.1780.4444/azurevm/icon.png",
+                    "id": "/subscriptions/f05b75f0-4b3d-4759-bbfc-0b29feb82407/providers/Microsoft.Web/locations/westus/managedApis/azurevm",
+                    "type": "Microsoft.Web/locations/managedApis"
+                },
+                "testLinks": []
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2024-11-01",
+            "name": "[parameters('virtualMachines_linuxVM1_name')]",
+            "location": "westus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_linuxvm1646_name'))]"
+            ],
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B1s"
+                },
+                "additionalCapabilities": {
+                    "hibernationEnabled": false
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "canonical",
+                        "offer": "0001-com-ubuntu-server-jammy",
+                        "sku": "22_04-lts-gen2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[concat(parameters('virtualMachines_linuxVM1_name'), '-osdisk')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "deleteOption": "Delete"
+                    },
+                    "dataDisks": [],
+                    "diskControllerType": "SCSI"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachines_linuxVM1_name')]",
+                    "adminUsername": "shyam",
+                    "adminPassword": "Welcome@12345",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true,
+                        "patchSettings": {
+                            "patchMode": "ImageDefault",
+                            "assessmentMode": "ImageDefault"
+                        }
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "securityProfile": {
+                    "uefiSettings": {
+                        "secureBootEnabled": true,
+                        "vTpmEnabled": true
+                    },
+                    "securityType": "TrustedLaunch"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_linuxvm1646_name'))]",
+                            "properties": {
+                                "deleteOption": "Delete"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "microsoft.devtestlab/schedules",
+            "apiVersion": "2018-09-15",
+            "name": "[parameters('schedules_shutdown_computevm_linuxvm1_name')]",
+            "location": "westus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_linuxVM1_name'))]"
+            ],
+            "properties": {
+                "status": "Enabled",
+                "taskType": "ComputeVmShutdownTask",
+                "dailyRecurrence": {
+                    "time": "2200"
+                },
+                "timeZoneId": "India Standard Time",
+                "notificationSettings": {
+                    "status": "Enabled",
+                    "timeInMinutes": 30,
+                    "emailRecipient": "sandeep.s.ch@hotmail.com",
+                    "notificationLocale": "en"
+                },
+                "targetResourceId": "[resourceId('Microsoft.Compute/virtualMachines', parameters('virtualMachines_linuxVM1_name'))]"
+            }
+        },
+        {
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "2024-07-01",
+            "name": "[parameters('bastionHosts_Linux_Bastion_name')]",
+            "location": "westus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_westus_name'))]"
+            ],
+            "sku": {
+                "name": "Developer"
+            },
+            "properties": {
+                "dnsName": "omnibrain.westus.bastionglobal.azure.com",
+                "scaleUnits": 2,
+                "virtualNetwork": {
+                    "id": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_westus_name'))]"
+                },
+                "ipConfigurations": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2024-07-01",
+            "name": "[concat(parameters('virtualNetworks_vnet_westus_name'), '/snet-westus-1')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_vnet_westus_name'))]"
+            ],
+            "properties": {
+                "addressPrefixes": [
+                    "172.16.0.0/24"
+                ],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Disabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2024-07-01",
+            "name": "[parameters('networkInterfaces_linuxvm1646_name')]",
+            "location": "westus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vnet_westus_name'), 'snet-westus-1')]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_linuxVM1_nsg_name'))]"
+            ],
+            "kind": "Regular",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "id": "[concat(resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaces_linuxvm1646_name')), '/ipConfigurations/ipconfig1')]",
+                        "type": "Microsoft.Network/networkInterfaces/ipConfigurations",
+                        "properties": {
+                            "privateIPAddress": "172.16.0.4",
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_vnet_westus_name'), 'snet-westus-1')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableIPForwarding": false,
+                "disableTcpStateTracking": false,
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroups_linuxVM1_nsg_name'))]"
+                },
+                "nicType": "Standard",
+                "auxiliaryMode": "None",
+                "auxiliarySku": "None"
+            }
+        }
+    ]
+}
